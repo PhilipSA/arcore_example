@@ -15,6 +15,9 @@ class WorldState extends ChangeNotifier {
 
   void populateWorld(ARObjectManager arObjectManager, ARAnchorManager arAnchorManager, List<ARHitTestResult> hitTestResults) {
     hitTestResults.forEachIndexed((index, element) {
+      var myPokemonAnchorCopy = ARPlaneAnchor(transformation: myPokemon!.anchor.transformation);
+      arAnchorManager.addAnchor(myPokemonAnchorCopy);
+
       var otherPokemonNode = ARNode(
           type: NodeType.localGLTF2,
           uri:
@@ -22,10 +25,10 @@ class WorldState extends ChangeNotifier {
           scale: Vector3(0.2, 0.2, 0.2),
           position: Vector3(index + myPokemon!.node.position.x, myPokemon!.node.position.y, myPokemon!.node.position.z),
           rotation: Vector4(1.0, 0.0, 0.0, 0.0));
-
-      var myPokemonAnchorCopy = ARPlaneAnchor(transformation: myPokemon!.anchor.transformation);
       arObjectManager.addNode(otherPokemonNode, planeAnchor: myPokemonAnchorCopy);
-      otherPokemons.add(Pokemon(otherPokemonNode, myPokemonAnchorCopy));
+
+      var otherPokemon = Pokemon(otherPokemonNode, myPokemonAnchorCopy);
+      otherPokemons.add(otherPokemon);
     });
 
     notifyListeners();
