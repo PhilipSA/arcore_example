@@ -16,13 +16,14 @@ abstract class Pokemon {
   void removeFromWorld(ARObjectManager arObjectManager, ARAnchorManager arAnchorManager) {
     arAnchorManager.removeAnchor(anchor);
     arObjectManager.removeNode(node);
+    for (var node in nodes.values) {
+      arObjectManager.removeNode(node);
+    }
   }
 
   void changeState(ARObjectManager arObjectManager, ARAnchorManager arAnchorManager, PokemonState newState) {
     var newStateNode = nodes[newState];
-    arObjectManager.removeNode(node);
-    arAnchorManager.removeAnchor(anchor);
-
+    removeFromWorld(arObjectManager, arAnchorManager);
     node = newStateNode!;
     arAnchorManager.addAnchor(anchor);
     arObjectManager.addNode(newStateNode, planeAnchor: anchor);
