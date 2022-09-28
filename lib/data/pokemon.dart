@@ -9,23 +9,28 @@ abstract class Pokemon {
   ARPlaneAnchor anchor;
   late ARNode node;
 
-  Pokemon(this.nodes, this.anchor) {
+  Pokemon(this.nodes, this.anchor, ARObjectManager arObjectManager) {
     node = nodes[PokemonState.neutral]!;
+    _addNodeToManager(arObjectManager);
   }
 
-  void removeFromWorld(ARObjectManager arObjectManager, ARAnchorManager arAnchorManager) {
-    arAnchorManager.removeAnchor(anchor);
-    arObjectManager.removeNode(node);
+  void _addNodeToManager(ARObjectManager arObjectManager) async {
+    await arObjectManager.addNode(node, planeAnchor: anchor);
+  }
+
+  Future<void> removeFromWorld(ARObjectManager arObjectManager, ARAnchorManager arAnchorManager) async {
+    await arAnchorManager.removeAnchor(anchor);
+    await arObjectManager.removeNode(node);
     for (var node in nodes.values) {
-      arObjectManager.removeNode(node);
+      await arObjectManager.removeNode(node);
     }
   }
 
-  void changeState(ARObjectManager arObjectManager, ARAnchorManager arAnchorManager, PokemonState newState) {
+  Future<void> changeState(ARObjectManager arObjectManager, ARAnchorManager arAnchorManager, PokemonState newState) async {
     var newStateNode = nodes[newState];
     removeFromWorld(arObjectManager, arAnchorManager);
     node = newStateNode!;
-    arAnchorManager.addAnchor(anchor);
-    arObjectManager.addNode(newStateNode, planeAnchor: anchor);
+    await arAnchorManager.addAnchor(anchor);
+    await arObjectManager.addNode(newStateNode, planeAnchor: anchor);
   }
 }

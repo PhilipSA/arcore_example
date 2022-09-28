@@ -15,8 +15,7 @@ class Dance extends BaseInteraction {
       Future.delayed(Duration(milliseconds: (500 * i).toInt()), () => _rotatePokemons90Degress(i));
     }
 
-    _toggleDizzyness(arObjectManager, arAnchorManager, true);
-
+    Future.delayed(const Duration(seconds: 1), () => _toggleDizzyness(arObjectManager, arAnchorManager, true));
     Future.delayed(const Duration(seconds: 5), () => _toggleDizzyness(arObjectManager, arAnchorManager, false));
   }
 

@@ -8,11 +8,9 @@ import 'package:vector_math/vector_math_64.dart';
 
 class Catmon extends Pokemon {
   Catmon(ARObjectManager arObjectManager, ARPlaneAnchor anchor, Vector3 startingPosition)
-      : super(generateStateNodes(arObjectManager, anchor, startingPosition), anchor);
+      : super(generateStateNodes(startingPosition), anchor, arObjectManager);
 
   static Map<PokemonState, ARNode> generateStateNodes(
-      ARObjectManager arObjectManager,
-      ARPlaneAnchor arPlaneAnchor,
       Vector3 startingPosition) {
     var neutralAsset = "cat_neutral.glb";
     var dizzyAsset = "cat_dizzy.glb";
@@ -23,7 +21,6 @@ class Catmon extends Pokemon {
         scale: Vector3(1, 1, 1),
         position: startingPosition,
         rotation: Vector4(1.0, 0.0, 0.0, 0.0));
-    arObjectManager.addNode(neutralNode, planeAnchor: arPlaneAnchor);
 
     var dizzyNode = ARNode(
         type: NodeType.fileSystemAppFolderGLB,

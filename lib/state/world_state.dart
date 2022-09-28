@@ -30,17 +30,17 @@ class WorldState extends ChangeNotifier {
   WorldState(this.arSessionManager, this.arObjectManager, this.arAnchorManager,
       this.arLocationManager);
 
-  void populateWorld(List<ARHitTestResult> hitTestResults) {
+  Future<void> populateWorld(List<ARHitTestResult> hitTestResults) async {
     var positions = {
-      Vector3(0.5, 0.0, 0.0),
-      Vector3(0.0, 0.0, 0.5),
-      Vector3(0.5, 0.0, 0.5),
+      Vector3(0.8, 0.0, 0.0),
+      Vector3(0.0, 0.0, 0.8),
+      Vector3(0.8, 0.0, 0.8),
     };
 
     for (var position in positions) {
       var myPokemonAnchorCopy = ARPlaneAnchor(
           transformation: myPokemon!.anchor.transformation);
-      arAnchorManager.addAnchor(myPokemonAnchorCopy);
+      await arAnchorManager.addAnchor(myPokemonAnchorCopy);
 
       var otherPokemon = Catmon(arObjectManager, myPokemonAnchorCopy, position);
       otherPokemons.add(otherPokemon);
@@ -76,7 +76,8 @@ class WorldState extends ChangeNotifier {
     }
 
     if (otherPokemonWithinDistance != null) {
-      var randomNumber = Random.secure().nextInt(2);
+      //var randomNumber = Random.secure().nextInt(1);
+      var randomNumber = 0;
 
       if (randomNumber == 0) {
         var dance = Dance(myPokemon!, otherPokemonWithinDistance);
