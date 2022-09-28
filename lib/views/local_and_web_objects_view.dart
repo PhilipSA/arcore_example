@@ -1,14 +1,12 @@
 import 'package:ar_flutter_plugin/ar_flutter_plugin.dart';
 import 'package:ar_flutter_plugin/datatypes/config_planedetection.dart';
 import 'package:ar_flutter_plugin/datatypes/hittest_result_types.dart';
-import 'package:ar_flutter_plugin/datatypes/node_types.dart';
 import 'package:ar_flutter_plugin/managers/ar_anchor_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_location_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_object_manager.dart';
 import 'package:ar_flutter_plugin/managers/ar_session_manager.dart';
 import 'package:ar_flutter_plugin/models/ar_anchor.dart';
 import 'package:ar_flutter_plugin/models/ar_hittest_result.dart';
-import 'package:ar_flutter_plugin/models/ar_node.dart';
 import 'package:arcore_example/state/world_state.dart';
 import 'package:flutter/material.dart';
 
@@ -20,17 +18,13 @@ class LocalAndWebObjectsView extends StatefulWidget {
 }
 
 class _LocalAndWebObjectsViewState extends State<LocalAndWebObjectsView> {
-  late ARSessionManager arSessionManager;
-  late ARObjectManager arObjectManager;
-  late ARAnchorManager arAnchorManager;
-  late ARLocationManager arLocationManager;
 
-  WorldState worldState = WorldState();
+  late WorldState worldState;
 
   @override
   void dispose() {
     super.dispose();
-    arSessionManager.dispose();
+    worldState.arSessionManager.dispose();
   }
 
   @override
@@ -39,23 +33,22 @@ class _LocalAndWebObjectsViewState extends State<LocalAndWebObjectsView> {
         appBar: AppBar(
           title: const Text('Object Transformation Gestures'),
         ),
-        body: Container(
-            child: Stack(children: [
-              ARView(
-                onARViewCreated: onARViewCreated,
-                planeDetectionConfig: PlaneDetectionConfig.horizontalAndVertical,
-              ),
-              Align(
-                alignment: FractionalOffset.bottomCenter,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                          onPressed: () => worldState.clearWorldState(arAnchorManager, arObjectManager),
-                          child: const Text("Remove Everything")),
-                    ]),
-              )
-            ])));
+        body: Stack(children: [
+          ARView(
+            onARViewCreated: onARViewCreated,
+            planeDetectionConfig: PlaneDetectionConfig.horizontalAndVertical,
+          ),
+          Align(
+            alignment: FractionalOffset.bottomCenter,
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                      onPressed: () => worldState.clearWorldState(),
+                      child: const Text("Remove Everything")),
+                ]),
+          )
+        ]));
   }
 
   void onARViewCreated(
@@ -63,12 +56,10 @@ class _LocalAndWebObjectsViewState extends State<LocalAndWebObjectsView> {
       ARObjectManager arObjectManager,
       ARAnchorManager arAnchorManager,
       ARLocationManager arLocationManager) {
-    this.arSessionManager = arSessionManager;
-    this.arObjectManager = arObjectManager;
-    this.arAnchorManager = arAnchorManager;
-    this.arLocationManager = arLocationManager;
 
-    this.arSessionManager.onInitialize(
+    worldState = WorldState(arSessionManager, arObjectManager, arAnchorManager, arLocationManager);
+
+    worldState.arSessionManager.onInitialize(
       showFeaturePoints: false,
       showPlanes: true,
       customPlaneTexturePath: "Images/triangle.png",
@@ -76,15 +67,15 @@ class _LocalAndWebObjectsViewState extends State<LocalAndWebObjectsView> {
       handlePans: true,
       handleRotation: true
     );
-    this.arObjectManager.onInitialize();
+    worldState.arObjectManager.onInitialize();
 
-    this.arSessionManager.onPlaneOrPointTap = onPlaneOrPointTapped;
-    this.arObjectManager.onPanStart = onPanStarted;
-    this.arObjectManager.onPanChange = onPanChanged;
-    this.arObjectManager.onPanEnd = onPanEnded;
-    this.arObjectManager.onRotationStart = onRotationStarted;
-    this.arObjectManager.onRotationChange = onRotationChanged;
-    this.arObjectManager.onRotationEnd = onRotationEnded;
+    worldState.arSessionManager.onPlaneOrPointTap = onPlaneOrPointTapped;
+    worldState.arObjectManager.onPanStart = onPanStarted;
+    worldState.arObjectManager.onPanChange = onPanChanged;
+    worldState.arObjectManager.onPanEnd = onPanEnded;
+    worldState.arObjectManager.onRotationStart = onRotationStarted;
+    worldState.arObjectManager.onRotationChange = onRotationChanged;
+    worldState.arObjectManager.onRotationEnd = onRotationEnded;
   }
 
   Future<void> onPlaneOrPointTapped(
@@ -94,27 +85,24 @@ class _LocalAndWebObjectsViewState extends State<LocalAndWebObjectsView> {
 
     var newAnchor =
     ARPlaneAnchor(transformation: singleHitTestResult.worldTransform);
-    bool? didAddAnchor = await arAnchorManager.addAnchor(newAnchor);
+    bool? didAddAnchor = await worldState.arAnchorManager.addAnchor(newAnchor);
     if (didAddAnchor == true) {
-      bool? didAddNodeToAnchor = await worldState.iChoseYou(newAnchor, arObjectManager, arAnchorManager, hitTestResults);
+      bool? didAddNodeToAnchor = await worldState.iChoseYou(newAnchor, hitTestResults);
       if (didAddNodeToAnchor == false) {
-        arSessionManager.onError("Adding Node to Anchor failed");
+        worldState.arSessionManager.onError("Adding Node to Anchor failed");
       }
     } else {
-      arSessionManager.onError("Adding Anchor failed");
+      worldState.arSessionManager.onError("Adding Anchor failed");
     }
   }
 
   onPanStarted(String nodeName) {
-    print("Started panning node " + nodeName);
   }
 
   onPanChanged(String nodeName) {
-    //print("Continued panning node " + nodeName);
   }
 
   onPanEnded(String nodeName, Matrix4 newTransform) {
-    print("Ended panning node " + nodeName);
     final pannedNode =
     worldState.otherPokemons.firstWhere((element) => element.node.name == nodeName);
 
@@ -126,11 +114,11 @@ class _LocalAndWebObjectsViewState extends State<LocalAndWebObjectsView> {
   }
 
   onRotationStarted(String nodeName) {
-    print("Started rotating node " + nodeName);
+
   }
 
   onRotationChanged(String nodeName) {
-    //print("Continued rotating node " + nodeName);
+
   }
 
   onRotationEnded(String nodeName, Matrix4 newTransform) {

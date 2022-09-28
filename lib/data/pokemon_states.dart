@@ -1,0 +1,4 @@
+enum PokemonState {
+  neutral,
+  dizzy;
+}
